@@ -2,3 +2,5 @@ httpx
 trafilatura
 pytest
 beautifulsoup4
+fastapi
+uvicorn
