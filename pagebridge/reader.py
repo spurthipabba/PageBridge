@@ -1,23 +1,28 @@
+
 import httpx
 
-from pagebridge.extractor import extract_content
+from pagebridge.extractor import extract_content, extract_title
 from pagebridge.models import PageResult
 from pagebridge.security import validate_url
 
 
 def read_website(url):
-    validate_url(url)
+    current_url = validate_url(url)
+    visited = set()
 
     with httpx.Client(
         timeout=15,
         follow_redirects=False,
-        headers={"User-Agent": "PageBridge/0.1"},
+        headers={"User-Agent": "Mozilla/5.0 PageBridge/0.1"},
     ) as client:
 
-        current_url = url
-
         for _ in range(6):
-            validate_url(current_url)
+            current_url = validate_url(current_url)
+
+            if current_url in visited:
+                raise ValueError("Redirect loop detected.")
+
+            visited.add(current_url)
 
             response = client.get(current_url)
 
@@ -27,9 +32,7 @@ def read_website(url):
                 if not location:
                     raise ValueError("Redirect has no destination.")
 
-                current_url = str(
-                    response.url.join(location)
-                )
+                current_url = str(response.url.join(location))
                 continue
 
             response.raise_for_status()
@@ -42,6 +45,7 @@ def read_website(url):
                 raise ValueError("The URL did not return HTML.")
 
             html = response.text
+            title = extract_title(html)
             content = extract_content(html)
 
             if not content:
@@ -49,7 +53,7 @@ def read_website(url):
 
             return PageResult(
                 url=str(response.url),
-                title=str(response.url),
+                title=title,
                 content=content,
             )
 

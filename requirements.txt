@@ -1,2 +1,4 @@
 httpx
 trafilatura
+pytest
+beautifulsoup4

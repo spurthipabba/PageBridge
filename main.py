@@ -11,9 +11,8 @@ def main():
     try:
         result = read_website(sys.argv[1])
 
-        print("\nPAGEBRIDGE")
-        print("=" * 50)
         print("URL:", result.url)
+        print("TITLE:", result.title)
         print("\nCONTENT")
         print(result.content)
 
